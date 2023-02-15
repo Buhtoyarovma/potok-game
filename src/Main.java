@@ -1,10 +1,21 @@
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.time.LocalDateTime;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class Main {
+
+    static void saveGame(String pathSaveFile, GameProgress gameProgress) {
+
+        try (FileOutputStream fos = new FileOutputStream(pathSaveFile);
+             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+            oos.writeObject(gameProgress);
+        } catch (IOException ex) {
+            System.out.println(ex.getMessage());
+        }
+
+    }
 
 
     static String newFolder(String pathFolder, String nameFolder) {
@@ -29,8 +40,36 @@ public class Main {
         }
     }
 
+    static void zipFiles(String pathZipFile, String filesToZip) {
+
+        try (ZipOutputStream zout = new ZipOutputStream(new FileOutputStream(pathZipFile + "/zip.zip"));
+
+             FileInputStream fis = new FileInputStream("D:/Games/savegames/save.dat")) {
+
+            ZipEntry entry = new ZipEntry("save.dat");
+            zout.putNextEntry(entry);
+
+            byte[] buffer = new byte[fis.available()];
+            fis.read(buffer);
+
+            zout.write(buffer);
+
+            zout.closeEntry();
+
+        } catch (IOException ex) {
+            System.out.println(ex.getMessage());
+        }
+
+
+    }
+
 
     public static void main(String[] args) {
+
+        GameProgress gameProgress1 = new GameProgress(66, 55, 2, 2.2);
+        GameProgress gameProgress2 = new GameProgress(99, 99, 100, 152.5);
+        GameProgress gameProgress3 = new GameProgress(21, 2, 1, 0.1);
+
 
         StringBuilder sb = new StringBuilder();
 
@@ -53,15 +92,33 @@ public class Main {
 
                 .append(newFile("D:/Games/temp/", "temp.txt")).toString();
 
-        //String text = sb.toString();
         try (FileWriter writer = new FileWriter("D:/Games/temp/temp.txt")) {
             writer.write(text);
         } catch (IOException ex) {
             System.out.println(ex.getMessage());
         }
 
+        saveGame("D:/Games/savegames/save.dat", gameProgress1);
+        saveGame("D:/Games/savegames/save1.dat", gameProgress2);
+        saveGame("D:/Games/savegames/save2.dat", gameProgress3);
 
+        File pathZipFile = new File("D:/Games/savegames/");
+        StringBuilder sb2 = new StringBuilder();
+
+        if (pathZipFile.isDirectory()) {
+            for (File item : pathZipFile.listFiles()) {
+                if (item.isFile()) {
+                    sb2.append(pathZipFile + "/" + item.getName()).append("\n");
+                }
+            }
+        }
+        String filesToZip = sb2.toString();
+
+        zipFiles(String.valueOf(pathZipFile), filesToZip);
     }
-
-
 }
+
+
+
+
+
